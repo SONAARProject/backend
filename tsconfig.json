@@ -31,7 +31,8 @@
       "compression",
       "express-rate-limit",
       "express",
-      "node"
+      "node",
+      "node-fetch"
     ] /* Type declaration files to be included in compilation. */
   }
 }

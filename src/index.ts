@@ -1,10 +1,11 @@
-import { searchByImageURL } from "./search";
-//import clarifyUpload from "./upload";
 import express from "express";
 import * as bodyParser from "body-parser";
 import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
+import { searchByImageURL } from "./clarifai/search";
+//import clarifyUpload from "./upload";
+import { googleReverseSearch } from "./google/search";
 
 const app = express();
 
@@ -22,12 +23,48 @@ app.use(
 //upload
 //clarifyUpload.uploadUrls("./upload.txt");
 
-//url example
-// searchByImageURL("https://images-gmi-pmc.edge-generalmills.com/cbc3bd78-8797-4ac9-ae98-feafbd36aab7.jpg")
+app.post(
+  "/clarifai/search",
+  async function (req: express.Request, res: express.Response) {
+    const result = await searchByImageURL(
+      decodeURIComponent(req.body.image_url)
+    );
+    res.send(result);
+  }
+);
 
-app.post("/search", async function (req, res) {
-  const result = await searchByImageURL(req.body.image_url);
-  res.send(result);
+app.get(
+  "/clarifai/search/:image_url",
+  async function (req: express.Request, res: express.Response) {
+    const result = await searchByImageURL(
+      decodeURIComponent(req.params.image_url)
+    );
+    res.send(result);
+  }
+);
+
+app.post(
+  "/google/search/",
+  async function (req: express.Request, res: express.Response) {
+    const result = await googleReverseSearch(
+      decodeURIComponent(req.body.image_url)
+    );
+    res.send(result);
+  }
+);
+
+app.get(
+  "/google/search/:image_url",
+  async function (req: express.Request, res: express.Response) {
+    const result = await googleReverseSearch(
+      decodeURIComponent(req.params.image_url)
+    );
+    res.send(result);
+  }
+);
+
+app.get("**", function (_, res: express.Response) {
+  res.send("Invalid service");
 });
 
 const PORT = process.env.PORT || 3000;

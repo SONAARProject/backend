@@ -13,15 +13,23 @@ metadata.set("authorization", "Key " + apiKey);
 //By Image URL
 async function searchByImageURL(url: string): Promise<any> {
   return new Promise((resolve, reject) => {
-    stub.PostAnnotationsSearches(
+    stub.PostSearches(
       {
-        searches: [
-          {
-            query: {
-              ranks: [{ annotation: { data: { image: { url: url } } } }],
+        query: {
+          ands: [
+            {
+              output: {
+                input: {
+                  data: {
+                    image: {
+                      url,
+                    },
+                  },
+                },
+              },
             },
-          },
-        ],
+          ],
+        },
       },
       metadata,
       (err: any, response: any) => {
@@ -30,8 +38,7 @@ async function searchByImageURL(url: string): Promise<any> {
         }
         if (response.status.code !== 10000) {
           reject(
-            "Post annotations searches failed, status: " +
-              response.status.description
+            "Post searches failed, status: " + response.status.description
           );
         }
         resolve({
