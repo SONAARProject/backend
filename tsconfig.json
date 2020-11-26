@@ -1,6 +1,7 @@
 {
   "extends": "@tsconfig/recommended/tsconfig.json",
   "compilerOptions": {
+    "resolveJsonModule": true,
     /* Basic Options */
     "declaration": true /* Generates corresponding '.d.ts' file. */,
     "declarationMap": true /* Generates a sourcemap for each corresponding '.d.ts' file. */,
@@ -32,7 +33,8 @@
       "express-rate-limit",
       "express",
       "node",
-      "node-fetch"
+      "node-fetch",
+      "mysql"
     ] /* Type declaration files to be included in compilation. */
   }
 }
