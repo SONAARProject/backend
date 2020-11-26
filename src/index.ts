@@ -4,7 +4,6 @@ import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import { searchByImageURL } from "./clarifai/search";
-//import clarifyUpload from "./upload";
 import { googleReverseSearch } from "./google/search";
 
 const app = express();
@@ -19,9 +18,6 @@ app.use(
     max: 1000, // limit each IP to 1000 requests per windowMs
   })
 );
-
-//upload
-//clarifyUpload.uploadUrls("./upload.txt");
 
 app.post(
   "/clarifai/search",
