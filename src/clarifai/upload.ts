@@ -12,7 +12,7 @@ metadata.set("authorization", "Key " + apiKey);
 function uploadImage(imageUrl: string): Promise<string> {
   return new Promise((resolve, reject) => {
     stub.PostInputs(
-      { input: imageUrl },
+      { inputs: [imageUrl] },
       metadata,
       (err: any, response: any) => {
         if (err) {
@@ -20,7 +20,7 @@ function uploadImage(imageUrl: string): Promise<string> {
         } else if (response.status.code !== 10000) {
           reject("Post inputs failed, status: " + response.status.description);
         } else {
-          resolve(response.input.id);
+          resolve(response.inputs[0].id);
         }
       }
     );
