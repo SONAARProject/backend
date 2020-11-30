@@ -81,6 +81,17 @@ app.post(
   }
 );
 
+app.get(
+  "/test/search/:imageUrl",
+  async function (req: express.Request, res: express.Response) {
+    const result = await searchByImageURL(
+      decodeURIComponent(req.params.imageUrl)
+    );
+
+    res.send(result);
+  }
+);
+
 /*app.get(
   "/google/search/:image_url",
   async function (req: express.Request, res: express.Response) {

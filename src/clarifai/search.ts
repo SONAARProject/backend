@@ -1,5 +1,6 @@
 import { ClarifaiStub } from "clarifai-nodejs-grpc";
 import { Metadata } from "@grpc/grpc-js";
+import fetch from "node-fetch";
 import apiKey from "./constants";
 
 // Construct one of the stubs you want to use
@@ -11,6 +12,8 @@ metadata.set("authorization", "Key " + apiKey);
 
 //By Image URL
 async function searchByImageURL(url: string): Promise<any> {
+  const imageBytes = await (await fetch(url)).buffer();
+
   return new Promise((resolve, reject) => {
     stub.PostSearches(
       {
@@ -21,7 +24,7 @@ async function searchByImageURL(url: string): Promise<any> {
                 input: {
                   data: {
                     image: {
-                      url,
+                      base64: imageBytes.toString("base64"),
                     },
                   },
                 },
@@ -34,16 +37,16 @@ async function searchByImageURL(url: string): Promise<any> {
       (err: any, response: any) => {
         if (err) {
           reject(err);
-        }
-        if (response.status.code !== 10000) {
+        } else if (response.status.code !== 10000) {
           reject(
             "Post searches failed, status: " + response.status.description
           );
+        } else {
+          resolve({
+            score: response.hits[0].score,
+            id: response.hits[0].input.id,
+          });
         }
-        resolve({
-          score: response.hits[0].score,
-          id: response.hits[0].input.id,
-        });
       }
     );
   });

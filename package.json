@@ -8,6 +8,8 @@
     "tsc": "tsc",
     "test": "mocha --require esm",
     "generate:samples": "node generate-samples.js",
+    "host:samples": "http-server test/images",
+    "test:samples": "mocha --require esm test/samples.spec.js",
     "prebuild": "rimraf ./dist",
     "build": "npm run prebuild && tsc --build",
     "start": "node ./dist/index.js",
