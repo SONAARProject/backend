@@ -3,10 +3,10 @@ import * as bodyParser from "body-parser";
 import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
-import { searchByImageURL } from "./clarifai/search";
+import { searchByImageURL, getImageConcepts } from "./clarifai/search";
 import { uploadImage } from "./clarifai/upload";
-//import { googleReverseSearch } from "./google/search";
-import { getImageAlt, insertImageWithAlt } from "./lib/database";
+import { getImageAlt, insertImageWithAlt, addAltToImage } from "./lib/database";
+import getKeywords from "./lib/getKeywords";
 
 const app = express();
 
@@ -61,14 +61,15 @@ app.post(
       const altText = req.body.altText?.trim();
 
       if (imageUrl && altText) {
-        const result = await searchByImageURL(decodeURIComponent(imageUrl));
-
+        const result = await searchByImageURL(imageUrl);
+        const keywords = await getKeywords(altText);
         if (parseFloat(result.score) === 1) {
-          await insertImageWithAlt(result.id, altText);
+          await addAltToImage(result.id, altText, keywords);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
+          const concepts = await getImageConcepts(imageUrl);
           const clarifaiId = await uploadImage(imageUrl);
-          await insertImageWithAlt(clarifaiId, altText);
+          await insertImageWithAlt(clarifaiId, altText, concepts, keywords);
           res.send({ status: 1, message: "Image added successfully." });
         }
       } else {
@@ -84,23 +85,21 @@ app.post(
 app.get(
   "/test/search/:imageUrl",
   async function (req: express.Request, res: express.Response) {
-    const result = await searchByImageURL(
-      decodeURIComponent(req.params.imageUrl)
-    );
-
-    res.send(result);
+    if (process.env.NODE_ENV !== "production") {
+      try {
+        const result = await searchByImageURL(
+          decodeURIComponent(req.params.imageUrl)
+        );
+        res.send({ result });
+      } catch (err) {
+        console.error(err);
+        res.send("Error");
+      }
+    } else {
+      res.send("Invalid service");
+    }
   }
 );
-
-/*app.get(
-  "/google/search/:image_url",
-  async function (req: express.Request, res: express.Response) {
-    const result = await googleReverseSearch(
-      decodeURIComponent(req.params.image_url)
-    );
-    res.send(result);
-  }
-);*/
 
 app.get("**", function (_, res: express.Response) {
   res.send("Invalid service");

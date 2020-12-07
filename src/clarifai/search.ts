@@ -52,4 +52,39 @@ async function searchByImageURL(url: string): Promise<any> {
   });
 }
 
-export { searchByImageURL };
+async function getImageConcepts(url: string): Promise<Array<string>> {
+  const imageBytes = await (await fetch(url)).buffer();
+
+  return new Promise((resolve, reject) => {
+    stub.PostModelOutputs(
+      {
+        model_id: "aaa03c23b3724a16a56b629203edc62c", // This is model ID of the clarifai/main General model
+        inputs: [
+          {
+            data: {
+              image: { base64: imageBytes.toString("base64") },
+            },
+          },
+        ],
+        model: { output_info: { output_config: { min_value: 0.9 } } },
+      },
+      metadata,
+      (err: any, response: any) => {
+        if (err) {
+          reject(err);
+        } else if (response.status.code !== 10000) {
+          reject(
+            "Post model outputs failed, status: " + response.status.description
+          );
+        } else {
+          const concepts = response.outputs[0].data.concepts.map(
+            (c: any) => c.name
+          );
+          resolve(concepts);
+        }
+      }
+    );
+  });
+}
+
+export { searchByImageURL, getImageConcepts };

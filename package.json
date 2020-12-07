@@ -26,14 +26,18 @@
     "express-rate-limit": "^5.2.3",
     "helmet": "^4.2.0",
     "mysql": "^2.18.1",
-    "node-fetch": "^2.6.1"
+    "nlcst-to-string": "^2.0.4",
+    "node-fetch": "^2.6.1",
+    "retext": "^7.0.1",
+    "retext-keywords": "^6.0.0",
+    "retext-pos": "^3.0.0"
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.1",
     "@types/compression": "^1.7.0",
     "@types/express": "^4.17.9",
     "@types/express-rate-limit": "^5.1.0",
-    "@types/mysql": "^2.15.15",
+    "@types/mysql": "^2.15.16",
     "@types/node": "^14.14.10",
     "@types/node-fetch": "^2.5.7",
     "chai": "^4.2.0",
