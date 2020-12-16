@@ -3,7 +3,11 @@ import * as bodyParser from "body-parser";
 import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
-import { searchByImageURL, getImageConcepts } from "./clarifai/search";
+import {
+  searchByImageURL,
+  searchByImageBase64,
+  getImageConcepts,
+} from "./clarifai/search";
 import { uploadImage } from "./clarifai/upload";
 import { getImageAlt, insertImageWithAlt, addAltToImage } from "./lib/database";
 import getKeywords from "./lib/getKeywords";
@@ -30,6 +34,34 @@ app.get(
       const result = await searchByImageURL(
         decodeURIComponent(req.params.imageUrl)
       );
+
+      if (parseFloat(result.score) > SCORE_THRESHOLD) {
+        const alts = await getImageAlt(result.id);
+
+        if (alts.length > 0) {
+          res.send({
+            status: 1,
+            message: "Image exists, alt text found.",
+            alts: JSON.stringify(alts),
+          });
+        } else {
+          res.send({ status: 2, message: "No alt text found." });
+        }
+      } else {
+        res.send({ status: 3, message: "No image found." });
+      }
+    } catch (err) {
+      console.error(err);
+      res.send({ status: 4, message: "Unexpected error." });
+    }
+  }
+);
+
+app.post(
+  "/clarifai/search/",
+  async function (req: express.Request, res: express.Response) {
+    try {
+      const result = await searchByImageBase64(req.body.imageBase64);
 
       if (parseFloat(result.score) > SCORE_THRESHOLD) {
         const alts = await getImageAlt(result.id);
