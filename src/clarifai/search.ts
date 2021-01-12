@@ -13,10 +13,10 @@ metadata.set("authorization", "Key " + apiKey);
 //By Image URL
 async function searchByImageURL(url: string): Promise<any> {
   const imageBytes = await (await fetch(url)).buffer();
-  return searchByImageBase64(imageBytes);
+  return searchByImageBase64(imageBytes.toString("base64"));
 }
 
-async function searchByImageBase64(imageBytes: Buffer): Promise<any> {
+async function searchByImageBase64(imageBytes: string): Promise<any> {
   return new Promise((resolve, reject) => {
     stub.PostSearches(
       {
@@ -27,7 +27,7 @@ async function searchByImageBase64(imageBytes: Buffer): Promise<any> {
                 input: {
                   data: {
                     image: {
-                      base64: imageBytes.toString("base64"),
+                      base64: imageBytes,
                     },
                   },
                 },
