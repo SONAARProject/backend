@@ -55,9 +55,7 @@ async function searchByImageBase64(imageBytes: Buffer): Promise<any> {
   });
 }
 
-async function getImageConcepts(url: string): Promise<Array<string>> {
-  const imageBytes = await (await fetch(url)).buffer();
-
+async function getImageConcepts(imageBytes: Buffer): Promise<Array<string>> {
   return new Promise((resolve, reject) => {
     stub.PostModelOutputs(
       {

@@ -89,8 +89,8 @@ app.post(
   }
 );
 
-app.post(
-  "/clarifai/insert",
+/*app.post(
+  "/clarifai/insertUrl",
   async function (req: express.Request, res: express.Response) {
     try {
       const imageUrl = decodeURIComponent(req.body.imageUrl);
@@ -105,6 +105,38 @@ app.post(
         } else {
           const concepts = await getImageConcepts(imageUrl);
           const clarifaiId = await uploadImage(imageUrl);
+          await insertImageWithAlt(clarifaiId, altText, concepts, keywords);
+          res.send({ status: 1, message: "Image added successfully." });
+        }
+      } else {
+        res.send({ status: 2, message: "Invalid image url or alt text." });
+      }
+    } catch (err) {
+      console.error(err);
+      res.send({ status: 4, message: "Unexpected error." });
+    }
+  }
+);*/
+
+app.post(
+  "/clarifai/insertBase64",
+  async function (req: express.Request, res: express.Response) {
+    try {
+      const buffer = Buffer.from(
+        //@ts-ignore
+        Object.values<number>(JSON.parse(req.body.imageBase64))
+      );
+      const altText = decodeURIComponent(req.body.altText?.trim());
+
+      if (buffer && altText) {
+        const result = await searchByImageBase64(buffer);
+        const keywords = await getKeywords(altText);
+        if (parseFloat(result.score) === 1) {
+          await addAltToImage(result.id, altText, keywords);
+          res.send({ status: 1, message: "Image added successfully." });
+        } else {
+          const concepts = await getImageConcepts(buffer);
+          const clarifaiId = await uploadImage(buffer);
           await insertImageWithAlt(clarifaiId, altText, concepts, keywords);
           res.send({ status: 1, message: "Image added successfully." });
         }

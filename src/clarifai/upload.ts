@@ -1,6 +1,6 @@
 import { ClarifaiStub } from "clarifai-nodejs-grpc";
 import { Metadata } from "@grpc/grpc-js";
-import fetch from "node-fetch";
+//import fetch from "node-fetch";
 import apiKey from "./constants";
 
 // Construct one of the stubs you want to use
@@ -10,8 +10,7 @@ const stub = ClarifaiStub.json();
 const metadata = new Metadata();
 metadata.set("authorization", "Key " + apiKey);
 
-async function uploadImage(imageUrl: string): Promise<string> {
-  const imageBytes = await (await fetch(imageUrl)).buffer();
+async function uploadImage(imageBytes: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
     stub.PostInputs(
       {
