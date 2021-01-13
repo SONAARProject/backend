@@ -62,10 +62,8 @@ app.post(
   async function (req: express.Request, res: express.Response) {
     try {
       const buffer = Buffer.from(
-        new ArrayBuffer(
-          //@ts-ignore
-          Object.values<number>(JSON.parse(req.body.imageBase64))
-        )
+        //@ts-ignore
+        Object.values<number>(JSON.parse(req.body.imageBase64))
       );
       const result = await searchByImageBase64(buffer);
 
