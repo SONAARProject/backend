@@ -16,7 +16,7 @@ async function searchByImageURL(url: string): Promise<any> {
   return searchByImageBase64(imageBytes);
 }
 
-async function searchByImageBase64(imageBytes: Buffer): Promise<any> {
+async function searchByImageBase64(imageBytes: Buffer | string): Promise<any> {
   return new Promise((resolve, reject) => {
     stub.PostSearches(
       {

@@ -61,14 +61,19 @@ app.post(
   "/clarifai/search/",
   async function (req: express.Request, res: express.Response) {
     try {
-      const buffer = Buffer.from(
-        //@ts-ignore
-        Object.values<number>(JSON.parse(req.body.imageBase64))
-      );
-      const result = await searchByImageBase64(buffer);
+      let result = null;
+      if (req.body.imageBuffer) {
+        const buffer = Buffer.from(
+          //@ts-ignore
+          Object.values<number>(JSON.parse(req.body.imageBase64))
+        );
+        result = await searchByImageBase64(buffer);
+      } else {
+        result = await searchByImageBase64(req.body.imageBase64);
+      }
 
-      if (parseFloat(result.score) > SCORE_THRESHOLD) {
-        const alts = await getImageAlt(result.id);
+      if (result && parseFloat(result["score"]) > SCORE_THRESHOLD) {
+        const alts = await getImageAlt(result["id"]);
 
         if (alts.length > 0) {
           res.send({
