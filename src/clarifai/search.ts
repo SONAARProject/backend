@@ -12,11 +12,15 @@ metadata.set("authorization", "Key " + apiKey);
 
 //By Image URL
 async function searchByImageURL(url: string): Promise<any> {
-  const imageBytes = await (await fetch(url)).buffer();
-  return searchByImageBase64(imageBytes);
+  const imageBuffer = await (await fetch(url)).buffer();
+  return searchByImageBuffer(imageBuffer);
 }
 
-async function searchByImageBase64(imageBytes: Buffer | string): Promise<any> {
+async function searchByImageBuffer(imageBuffer: Buffer): Promise<any> {
+  return searchByImageBase64(imageBuffer.toString("base64"));
+}
+
+async function searchByImageBase64(imageBytes: string): Promise<any> {
   return new Promise((resolve, reject) => {
     stub.PostSearches(
       {
@@ -55,7 +59,18 @@ async function searchByImageBase64(imageBytes: Buffer | string): Promise<any> {
   });
 }
 
-async function getImageConcepts(imageBytes: Buffer): Promise<Array<string>> {
+async function getImageUrlConcepts(url: string): Promise<any> {
+  const imageBuffer = await (await fetch(url)).buffer();
+  return getImageBufferConcepts(imageBuffer);
+}
+
+async function getImageBufferConcepts(imageBuffer: Buffer): Promise<any> {
+  return getImageBase64Concepts(imageBuffer.toString("base64"));
+}
+
+async function getImageBase64Concepts(
+  imageBytes: string
+): Promise<Array<string>> {
   return new Promise((resolve, reject) => {
     stub.PostModelOutputs(
       {
@@ -63,7 +78,7 @@ async function getImageConcepts(imageBytes: Buffer): Promise<Array<string>> {
         inputs: [
           {
             data: {
-              image: { base64: imageBytes.toString("base64") },
+              image: { base64: imageBytes },
             },
           },
         ],
@@ -88,4 +103,11 @@ async function getImageConcepts(imageBytes: Buffer): Promise<Array<string>> {
   });
 }
 
-export { searchByImageURL, searchByImageBase64, getImageConcepts };
+export {
+  searchByImageURL,
+  searchByImageBuffer,
+  searchByImageBase64,
+  getImageUrlConcepts,
+  getImageBufferConcepts,
+  getImageBase64Concepts,
+};
