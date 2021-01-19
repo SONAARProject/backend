@@ -58,7 +58,7 @@ app.post(
       if (req.body.imageBuffer) {
         const buffer = Buffer.from(
           //@ts-ignore
-          Object.values<number>(JSON.parse(req.body.imageBase64))
+          Object.values<number>(JSON.parse(req.body.imageBuffer))
         );
         result = await searchByImageBuffer(buffer);
       } else {
