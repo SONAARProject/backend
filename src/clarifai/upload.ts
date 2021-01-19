@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 import apiKey from "./constants";
 
 // Construct one of the stubs you want to use
-const stub = ClarifaiStub.json();
+const stub = ClarifaiStub.grpc();
 
 // This will be used by every Clarifai endpoint call.
 const metadata = new Metadata();
