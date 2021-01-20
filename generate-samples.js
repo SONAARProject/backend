@@ -278,7 +278,7 @@ async function uploadOriginalImage(path) {
   const apiKey = fs.readFileSync("../clarifai-api.key", "utf-8").trim();
 
   // Construct one of the stubs you want to use
-  const stub = ClarifaiStub.json();
+  const stub = ClarifaiStub.grpc();
 
   // This will be used by every Clarifai endpoint call.
   const metadata = new Metadata();
@@ -308,7 +308,7 @@ async function searchByImage(path) {
   const apiKey = fs.readFileSync("../clarifai-api.key", "utf-8").trim();
 
   // Construct one of the stubs you want to use
-  const stub = ClarifaiStub.json();
+  const stub = ClarifaiStub.grpc();
 
   // This will be used by every Clarifai endpoint call.
   const metadata = new Metadata();

@@ -101,7 +101,7 @@ app.post(
       if (imageUrl && altText) {
         const result = await searchByImageURL(imageUrl);
         const keywords = await getKeywords(altText);
-        if (parseFloat(result.score) === 1) {
+        if (parseFloat(result.score) >= 0.99) {
           await addAltToImage(result.id, altText, keywords);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
