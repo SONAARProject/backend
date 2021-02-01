@@ -133,7 +133,7 @@ app.post(
       if (buffer && altText) {
         const result = await searchByImageBuffer(buffer);
         const keywords = await getKeywords(altText);
-        if (parseFloat(result.score) === 1) {
+        if (parseFloat(result.score) >= 0.99) {
           await addAltToImage(result.id, altText, keywords);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
@@ -162,7 +162,7 @@ app.post(
       if (imageBytes && altText) {
         const result = await searchByImageBase64(imageBytes);
         const keywords = await getKeywords(altText);
-        if (parseFloat(result.score) === 1) {
+        if (parseFloat(result.score) >= 0.99) {
           await addAltToImage(result.id, altText, keywords);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
