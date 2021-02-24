@@ -18,6 +18,29 @@ async function getImageAlt(clarifaiId: string): Promise<Array<string>> {
   return alts;
 }
 
+async function getImageConcepts(clarifaiId: string): Promise<Array<string>> {
+  const concepts = await executeQuery(
+    `SELECT
+      ClarifaiConcepts
+    FROM 
+      Image
+    WHERE 
+      ClarifaiId = "${clarifaiId}"`
+  );
+  return concepts[0].ClarifaiConcepts.split(",");
+}
+
+async function insertImage(
+  clarifaiId: string,
+  concepts: Array<string>
+): Promise<void> {
+  await executeQuery(
+    `INSERT INTO Image (ClarifaiId, ClarifaiConcepts, CreationDate) VALUES ("${clarifaiId}", "${concepts.join(
+      ","
+    )}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
+  );
+}
+
 async function insertImageWithAlt(
   clarifaiId: string,
   alt: string,
@@ -62,4 +85,10 @@ function executeQuery(query: string): Promise<any> {
   });
 }
 
-export { getImageAlt, insertImageWithAlt, addAltToImage };
+export {
+  getImageAlt,
+  getImageConcepts,
+  insertImage,
+  insertImageWithAlt,
+  addAltToImage,
+};

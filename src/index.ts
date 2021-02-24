@@ -16,7 +16,13 @@ import {
   uploadImageBuffer,
   uploadImageBase64,
 } from "./clarifai/upload";
-import { getImageAlt, insertImageWithAlt, addAltToImage } from "./lib/database";
+import {
+  getImageAlt,
+  getImageConcepts,
+  insertImage,
+  insertImageWithAlt,
+  addAltToImage,
+} from "./lib/database";
 import getKeywords from "./lib/getKeywords";
 
 const app = express();
@@ -55,8 +61,9 @@ app.post(
   async function (req: express.Request, res: express.Response) {
     try {
       let result = null;
+      let buffer: Buffer | undefined = undefined;
       if (req.body.imageBuffer) {
-        const buffer = Buffer.from(
+        buffer = Buffer.from(
           //@ts-ignore
           Object.values<number>(JSON.parse(req.body.imageBuffer))
         );
@@ -65,7 +72,7 @@ app.post(
         result = await searchByImageBase64(req.body.imageBase64);
       }
 
-      await search(result, res);
+      await search(result, res, req.body.imageBuffer, req.body.imageBase64);
     } catch (err) {
       console.error(err);
       res.send({ status: 4, message: "Unexpected error." });
@@ -73,7 +80,12 @@ app.post(
   }
 );
 
-async function search(result: any, res: express.Response): Promise<void> {
+async function search(
+  result: any,
+  res: express.Response,
+  buffer?: Buffer,
+  base64?: string
+): Promise<void> {
   if (result && parseFloat(result["score"]) > SCORE_THRESHOLD) {
     const alts = await getImageAlt(result["id"]);
 
@@ -84,10 +96,31 @@ async function search(result: any, res: express.Response): Promise<void> {
         alts: JSON.stringify(alts),
       });
     } else {
-      res.send({ status: 2, message: "No alt text found." });
+      const concepts = getImageConcepts(result["id"]);
+      res.send({
+        status: 2,
+        message: "No alt text found.",
+        concepts: JSON.stringify(concepts),
+      });
     }
-  } else {
-    res.send({ status: 3, message: "No image found." });
+  } else if (buffer) {
+    const concepts = await getImageBufferConcepts(buffer);
+    const clarifaiId = await uploadImageBuffer(buffer);
+    insertImage(clarifaiId, concepts);
+    res.send({
+      status: 3,
+      message: "Image added with concepts.",
+      concepts: JSON.stringify(concepts),
+    });
+  } else if (base64) {
+    const concepts = await getImageBase64Concepts(base64);
+    const clarifaiId = await uploadImageBase64(base64);
+    insertImage(clarifaiId, concepts);
+    res.send({
+      status: 3,
+      message: "Image added with concepts.",
+      concepts: JSON.stringify(concepts),
+    });
   }
 }
 
