@@ -72,7 +72,7 @@ app.post(
         result = await searchByImageBase64(req.body.imageBase64);
       }
 
-      await search(result, res, req.body.imageBuffer, req.body.imageBase64);
+      await search(result, res, buffer, req.body.imageBase64);
     } catch (err) {
       console.error(err);
       res.send({ status: 4, message: "Unexpected error." });
