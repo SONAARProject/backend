@@ -17,6 +17,11 @@ import {
   uploadImageBase64,
 } from "./clarifai/upload";
 import {
+  getTextFromImageURL,
+  getTextFromImageBuffer,
+  getTextFromImageBase64,
+} from "./clarifai/ocr";
+import {
   getImageAlt,
   getImageConcepts,
   insertImage,
