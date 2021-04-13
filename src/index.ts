@@ -127,7 +127,7 @@ async function search(
     res.send({
       status: 3,
       message: "Image added with concepts.",
-      concepts: JSON.stringify(concepts),
+      concepts: JSON.stringify(concepts.join(', ')),
     });
   }
 }

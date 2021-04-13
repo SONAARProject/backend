@@ -96,7 +96,7 @@ async function getImageBase64Concepts(
         } else {
           const concepts = response.outputs[0].data.concepts.map(
             (c: any) => c.name
-          ).join(', ');
+          );
           resolve(concepts);
         }
       }
