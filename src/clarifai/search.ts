@@ -71,6 +71,7 @@ async function getImageBufferConcepts(imageBuffer: Buffer): Promise<any> {
 async function getImageBase64Concepts(
   imageBytes: string
 ): Promise<Array<string>> {
+  //return getImageBase64Text(imageBytes);
   return new Promise((resolve, reject) => {
     stub.PostModelOutputs(
       {
@@ -82,7 +83,7 @@ async function getImageBase64Concepts(
             },
           },
         ],
-        model: { output_info: { output_config: { min_value: 0.9 } } },
+        model: { output_info: { output_config: { min_value: 0.95 } } },
       },
       metadata,
       (err: any, response: any) => {
@@ -95,13 +96,81 @@ async function getImageBase64Concepts(
         } else {
           const concepts = response.outputs[0].data.concepts.map(
             (c: any) => c.name
-          );
+          ).join(', ');
           resolve(concepts);
         }
       }
     );
   });
 }
+
+/*async function getImageBase64Text(imageBytes: string): Promise<Array<string>> {
+  return new Promise((resolve) => {
+    stub.PostWorkflows(
+      {
+        workflows: [
+          {
+            id: "visual-text-recognition-id",
+            nodes: [
+              {
+                id: "detect-concept",
+                model: {
+                  id: "2419e2eae04d04f820e5cf3aba42d0c7",
+                  model_version: {
+                    id: "75a5b92a0dec436a891b5ad224ac9170",
+                  },
+                },
+                inputs: [
+                  {
+                    data: {
+                      image: { base64: imageBytes },
+                    },
+                  },
+                ],
+              },
+              {
+                id: "image-crop",
+                model: {
+                  id: "ce3f5832af7a4e56ae310d696cbbefd8",
+                  model_version: {
+                    id: "a78efb13f7774433aa2fd4864f41f0e6",
+                  },
+                },
+                node_inputs: [{ node_id: "detect-concept" }],
+              },
+              {
+                id: "image-to-text",
+                model: {
+                  id: "9fe78b4150a52794f86f237770141b33",
+                  model_version: {
+                    id: "d94413e582f341f68884cac72dbd2c7b",
+                  },
+                },
+                node_inputs: [{ node_id: "image-crop" }],
+              },
+            ],
+          },
+        ],
+      },
+      metadata,
+      (err, response) => {
+        if (err) {
+          throw new Error(err);
+        }
+
+        if (response.status.code !== 10000) {
+          console.log(response.status);
+          throw new Error(
+            "Post workflows failed, status: " + response.status.description
+          );
+        } else {
+          console.log(response.outputs[0].data);
+          resolve([]);
+        }
+      }
+    );
+  });
+}*/
 
 export {
   searchByImageURL,

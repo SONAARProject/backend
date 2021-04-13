@@ -1,5 +1,4 @@
 import express from "express";
-import * as bodyParser from "body-parser";
 import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
@@ -16,11 +15,11 @@ import {
   uploadImageBuffer,
   uploadImageBase64,
 } from "./clarifai/upload";
-import {
+/*import {
   getTextFromImageURL,
   getTextFromImageBuffer,
   getTextFromImageBase64,
-} from "./clarifai/ocr";
+} from "./clarifai/ocr";*/
 import {
   getImageAlt,
   getImageConcepts,
@@ -33,8 +32,8 @@ import getKeywords from "./lib/getKeywords";
 const app = express();
 
 app.use(helmet());
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(compression());
 app.use(
   rateLimit({
@@ -46,14 +45,15 @@ app.use(
 const SCORE_THRESHOLD = 0.9;
 
 app.get(
-  "/clarifai/search/:imageUrl",
+  "/clarifai/search/:lang/:imageUrl",
   async function (req: express.Request, res: express.Response) {
     try {
       const result = await searchByImageURL(
         decodeURIComponent(req.params.imageUrl)
       );
+      const lang = req.params.lang;
 
-      await search(result, res);
+      await search(result, lang, res);
     } catch (err) {
       console.error(err);
       res.send({ status: 4, message: "Unexpected error." });
@@ -66,6 +66,7 @@ app.post(
   async function (req: express.Request, res: express.Response) {
     try {
       let result = null;
+      const lang = req.body.lang;
       let buffer: Buffer | undefined = undefined;
       if (req.body.imageBuffer) {
         buffer = Buffer.from(
@@ -76,8 +77,8 @@ app.post(
       } else {
         result = await searchByImageBase64(req.body.imageBase64);
       }
-
-      await search(result, res, buffer, req.body.imageBase64);
+      
+      await search(result, lang, res, buffer, req.body.imageBase64);
     } catch (err) {
       console.error(err);
       res.send({ status: 4, message: "Unexpected error." });
@@ -87,18 +88,20 @@ app.post(
 
 async function search(
   result: any,
+  lang: string,
   res: express.Response,
   buffer?: Buffer,
   base64?: string
 ): Promise<void> {
   if (result && parseFloat(result["score"]) > SCORE_THRESHOLD) {
-    const alts = await getImageAlt(result["id"]);
+    const alts = await getImageAlt(result["id"], lang);
 
     if (alts.length > 0) {
       res.send({
         status: 1,
         message: "Image exists, alt text found.",
-        alts: JSON.stringify(alts),
+        alts: alts[0].AltText ? JSON.stringify(alts) : undefined,
+        concepts: JSON.stringify(alts[0].ClarifaiConcepts),
       });
     } else {
       const concepts = getImageConcepts(result["id"]);
@@ -111,7 +114,7 @@ async function search(
   } else if (buffer) {
     const concepts = await getImageBufferConcepts(buffer);
     const clarifaiId = await uploadImageBuffer(buffer);
-    insertImage(clarifaiId, concepts);
+    await insertImage(clarifaiId, concepts);
     res.send({
       status: 3,
       message: "Image added with concepts.",
@@ -120,7 +123,7 @@ async function search(
   } else if (base64) {
     const concepts = await getImageBase64Concepts(base64);
     const clarifaiId = await uploadImageBase64(base64);
-    insertImage(clarifaiId, concepts);
+    await insertImage(clarifaiId, concepts);
     res.send({
       status: 3,
       message: "Image added with concepts.",

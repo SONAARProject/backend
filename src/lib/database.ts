@@ -1,9 +1,11 @@
 import { readFileSync } from "fs";
 import { createConnection } from "mysql";
+import franc from "franc-min";
+import iso6393To1 from './iso-639-3-to-1';
 
 const config = JSON.parse(readFileSync("../clarifai-db.json", "utf-8").trim());
 
-async function getImageAlt(clarifaiId: string): Promise<Array<string>> {
+async function getImageAlt(clarifaiId: string, lang: string): Promise<Array<any>> {
   const alts = await executeQuery(
     `SELECT
       i.ClarifaiConcepts,
@@ -11,9 +13,11 @@ async function getImageAlt(clarifaiId: string): Promise<Array<string>> {
       at.Keywords
     FROM 
       Image as i
-      LEFT OUTER JOIN AltText as at ON at.ImageId = i.ImageId
+      LEFT OUTER JOIN AltText as at ON at.ImageId = i.ImageId AND at.Language = "${lang}"
     WHERE 
-      i.ClarifaiId = "${clarifaiId}"`
+      i.ClarifaiId = "${clarifaiId}"
+    ORDER BY at.Counter DESC
+    LIMIT 5`
   );
   return alts;
 }
@@ -27,7 +31,8 @@ async function getImageConcepts(clarifaiId: string): Promise<Array<string>> {
     WHERE 
       ClarifaiId = "${clarifaiId}"`
   );
-  return concepts[0].ClarifaiConcepts.split(",");
+  
+  return concepts.length > 0 ? concepts[0].ClarifaiConcepts.split(",") : [];
 }
 
 async function insertImage(
@@ -61,14 +66,34 @@ async function addAltToImage(
   alt: string,
   keywords: Array<string>
 ): Promise<void> {
-  await executeQuery(
-    `
-    INSERT INTO AltText (ImageId, AltText, Keywords, CreationDate) 
-    SELECT ImageId, "${alt}", "${keywords.join(
-      ","
-    )}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}" 
-    FROM Image WHERE ClarifaiId = "${clarifaiId}"`
-  );
+  const lang = franc(alt);
+  console.log(lang, iso6393To1[lang]);
+  const altText = await executeQuery(`
+    SELECT * 
+    FROM
+      Image as i,
+      AltText as at
+    WHERE
+      i.ClarifaiId = "${clarifaiId}" AND
+      at.ImageId = i.ImageId AND
+      at.AltText = "${alt.trim()}"
+    LIMIT 1
+  `);
+
+  if (altText.length > 0) {
+    await executeQuery(`
+      UPDATE AltText SET Counter = "${parseInt(altText[0].Counter) + 1}" WHERE AltTextId = "${altText[0].AltTextId}"
+    `);
+  } else {
+    await executeQuery(
+      `
+      INSERT INTO AltText (ImageId, AltText, Keywords, Language, CreationDate) 
+      SELECT ImageId, "${alt.trim()}", "${keywords.join(
+        ","
+      )}", "${iso6393To1[lang]}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}" 
+      FROM Image WHERE ClarifaiId = "${clarifaiId}"`
+    );
+  }
 }
 
 function executeQuery(query: string): Promise<any> {

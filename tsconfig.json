@@ -2,6 +2,8 @@
   "extends": "@tsconfig/recommended/tsconfig.json",
   "compilerOptions": {
     "resolveJsonModule": true,
+    "target": "ES2019",
+    "lib": ["ES2019"],
     /* Basic Options */
     "declaration": true /* Generates corresponding '.d.ts' file. */,
     "declarationMap": true /* Generates a sourcemap for each corresponding '.d.ts' file. */,
