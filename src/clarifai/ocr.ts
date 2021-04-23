@@ -42,6 +42,7 @@ async function getTextFromImageBase64(imageBytes: string): Promise<any> {
           }
 
           const words = new Array<string>();
+          const phrases = new Array<string>();
 
           for (const output of response.results[0].outputs) {
             const model = output.model;
@@ -50,8 +51,11 @@ async function getTextFromImageBase64(imageBytes: string): Promise<any> {
                 words.push(region.data.text.raw);
               }
             }
+            if(model.name === "text-aggregator"){
+							phrases.push(output.data.text.raw);
+            }
           }
-          resolve({"words": words});
+          resolve({"words": words, "phrases": phrases});
         }
       );
   });
