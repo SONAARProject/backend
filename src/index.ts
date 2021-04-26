@@ -107,7 +107,7 @@ async function search(
         message: "Image exists, alt text found.",
         alts: alts[0].AltText ? JSON.stringify(alts) : undefined,
         concepts: JSON.stringify(alts[0].ClarifaiConcepts),
-        text: alts[0].Text ? alts[0].Text : undefined,
+        text: alts[0].Text ? decodeURIComponent(alts[0].Text) : undefined,
       });
     } else {
       const concepts = await getImageConcepts(result["id"]);
