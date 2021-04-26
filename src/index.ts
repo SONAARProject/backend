@@ -128,7 +128,7 @@ async function search(
       status: 3,
       message: "Image added with concepts.",
       concepts: JSON.stringify(concepts),
-      text: textResult ? textResult : undefined,
+      text: textResult ? JSON.stringify(textResult) : undefined,
     });
   } else if (base64) {
     const concepts = await getImageBase64Concepts(base64);
@@ -139,7 +139,7 @@ async function search(
       status: 3,
       message: "Image added with concepts.",
       concepts: JSON.stringify(concepts.join(', ')),
-      text: textResult ? textResult : undefined,
+      text: textResult ? JSON.stringify(textResult) : undefined,
     });
   } else if (url) {
     const concepts = await getImageUrlConcepts(url);
@@ -150,7 +150,7 @@ async function search(
       status: 3,
       message: "Image added with concepts.",
       concepts: JSON.stringify(concepts.join(', ')),
-      text: textResult ? textResult : undefined,
+      text: textResult ? JSON.stringify(textResult) : undefined,
     });
   }
 }
