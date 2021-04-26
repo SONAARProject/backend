@@ -123,7 +123,7 @@ async function search(
   } else if (buffer) {
     const concepts = await getImageBufferConcepts(buffer);
     const clarifaiId = await uploadImageBuffer(buffer);
-    await insertImage(clarifaiId, concepts);
+    await insertImage(clarifaiId, concepts, textResult);
     res.send({
       status: 3,
       message: "Image added with concepts.",
@@ -133,7 +133,7 @@ async function search(
   } else if (base64) {
     const concepts = await getImageBase64Concepts(base64);
     const clarifaiId = await uploadImageBase64(base64);
-    await insertImage(clarifaiId, concepts);
+    await insertImage(clarifaiId, concepts, textResult);
     res.send({
       status: 3,
       message: "Image added with concepts.",
@@ -143,7 +143,7 @@ async function search(
   } else if (url) {
     const concepts = await getImageUrlConcepts(url);
     const clarifaiId = await uploadImageUrl(url);
-    await insertImage(clarifaiId, concepts);
+    await insertImage(clarifaiId, concepts, textResult);
     res.send({
       status: 3,
       message: "Image added with concepts.",

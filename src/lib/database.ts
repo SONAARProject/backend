@@ -37,12 +37,13 @@ async function getImageConcepts(clarifaiId: string): Promise<Array<string>> {
 
 async function insertImage(
   clarifaiId: string,
-  concepts: Array<string>
+  concepts: Array<string>,
+  text?: any
 ): Promise<void> {
   await executeQuery(
-    `INSERT INTO Image (ClarifaiId, ClarifaiConcepts, CreationDate) VALUES ("${clarifaiId}", "${concepts.join(
+    `INSERT INTO Image (ClarifaiId, ClarifaiConcepts, Text, CreationDate) VALUES ("${clarifaiId}", "${concepts.join(
       ","
-    )}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
+    )}", "${text?.phrases?.join("\n")}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
   );
 }
 
