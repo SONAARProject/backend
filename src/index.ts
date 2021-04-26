@@ -53,10 +53,9 @@ app.get(
       let url = decodeURIComponent(req.params.imageUrl);
 
       const result = await searchByImageURL(url);
-      const textResult = await getTextFromImageURL(url);
       const lang = req.params.lang;
 
-      await search(result, textResult, lang, res, undefined, undefined, url);
+      await search(result, lang, res, undefined, undefined, url);
     } catch (err) {
       console.error(err);
       res.send({ status: 4, message: "Unexpected error." });
