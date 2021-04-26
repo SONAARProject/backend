@@ -15,11 +15,11 @@ import {
   uploadImageBuffer,
   uploadImageBase64,
 } from "./clarifai/upload";
-/*import {
+import {
   getTextFromImageURL,
   getTextFromImageBuffer,
   getTextFromImageBase64,
-} from "./clarifai/ocr";*/
+} from "./clarifai/ocr";
 import {
   getImageAlt,
   getImageConcepts,
@@ -48,12 +48,14 @@ app.get(
   "/clarifai/search/:lang/:imageUrl",
   async function (req: express.Request, res: express.Response) {
     try {
-      const result = await searchByImageURL(
-        decodeURIComponent(req.params.imageUrl)
-      );
+
+      let url = decodeURIComponent(req.params.imageUrl);
+
+      const result = await searchByImageURL(url);
+      const textResult = await getTextFromImageURL(url);
       const lang = req.params.lang;
 
-      await search(result, lang, res);
+      await search(result, textResult, lang, res, undefined, undefined, url);
     } catch (err) {
       console.error(err);
       res.send({ status: 4, message: "Unexpected error." });
@@ -65,7 +67,7 @@ app.post(
   "/clarifai/search/",
   async function (req: express.Request, res: express.Response) {
     try {
-      let result = null;
+      let result = null, textResult = null;
       const lang = req.body.lang;
       let buffer: Buffer | undefined = undefined;
       if (req.body.imageBuffer) {
@@ -74,11 +76,13 @@ app.post(
           Object.values<number>(JSON.parse(req.body.imageBuffer))
         );
         result = await searchByImageBuffer(buffer);
+        textResult = await getTextFromImageBuffer(buffer);
       } else {
         result = await searchByImageBase64(req.body.imageBase64);
+        textResult = await getTextFromImageBase64(req.body.imageBase64);
       }
-      
-      await search(result, lang, res, buffer, req.body.imageBase64);
+
+      await search(result, textResult, lang, res, buffer, req.body.imageBase64);
     } catch (err) {
       console.error(err);
       res.send({ status: 4, message: "Unexpected error." });
@@ -88,11 +92,14 @@ app.post(
 
 async function search(
   result: any,
+  textResult: any,
   lang: string,
   res: express.Response,
   buffer?: Buffer,
-  base64?: string
+  base64?: string,
+  url?: string,
 ): Promise<void> {
+
   if (result && parseFloat(result["score"]) > SCORE_THRESHOLD) {
     const alts = await getImageAlt(result["id"], lang);
 
@@ -102,6 +109,7 @@ async function search(
         message: "Image exists, alt text found.",
         alts: alts[0].AltText ? JSON.stringify(alts) : undefined,
         concepts: JSON.stringify(alts[0].ClarifaiConcepts),
+        text: textResult.words.length > 0 ? JSON.stringify(textResult) : undefined,
       });
     } else {
       const concepts = getImageConcepts(result["id"]);
@@ -109,6 +117,7 @@ async function search(
         status: 2,
         message: "No alt text found.",
         concepts: JSON.stringify(concepts),
+        text: textResult.words.length > 0 ? JSON.stringify(textResult) : undefined,
       });
     }
   } else if (buffer) {
@@ -119,6 +128,7 @@ async function search(
       status: 3,
       message: "Image added with concepts.",
       concepts: JSON.stringify(concepts),
+      text: textResult.words.length > 0 ? JSON.stringify(textResult) : undefined,
     });
   } else if (base64) {
     const concepts = await getImageBase64Concepts(base64);
@@ -128,6 +138,17 @@ async function search(
       status: 3,
       message: "Image added with concepts.",
       concepts: JSON.stringify(concepts.join(', ')),
+      text: textResult.words.length > 0 ? JSON.stringify(textResult) : undefined,
+    });
+  } else if (url) {
+    const concepts = await getImageUrlConcepts(url);
+    const clarifaiId = await uploadImageUrl(url);
+    await insertImage(clarifaiId, concepts);
+    res.send({
+      status: 3,
+      message: "Image added with concepts.",
+      concepts: JSON.stringify(concepts.join(', ')),
+      text: textResult.words.length > 0 ? JSON.stringify(textResult) : undefined,
     });
   }
 }
