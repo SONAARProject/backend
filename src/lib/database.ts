@@ -50,7 +50,9 @@ async function insertImageWithAlt(
   clarifaiId: string,
   alt: string,
   concepts: Array<string>,
-  keywords: Array<string>
+  keywords: Array<string>,
+  deviceLang?: string,
+  postText?: string
 ): Promise<void> {
   await executeQuery(
     `INSERT INTO Image (ClarifaiId, ClarifaiConcepts, CreationDate) VALUES ("${clarifaiId}", "${concepts.join(
@@ -58,7 +60,7 @@ async function insertImageWithAlt(
     )}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
   );
 
-  await addAltToImage(clarifaiId, alt, keywords);
+  await addAltToImage(clarifaiId, alt, keywords, deviceLang, postText);
 }
 
 async function addAltToImage(

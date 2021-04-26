@@ -158,18 +158,20 @@ app.post(
   async function (req: express.Request, res: express.Response) {
     try {
       const imageUrl = decodeURIComponent(req.body.imageUrl);
-      const altText = req.body.altText?.trim();
+      const lang = req.body.lang;
+      const altText = decodeURIComponent(req.body.altText?.trim());
+      const postText = decodeURIComponent(req.body.postText?.trim());
 
       if (imageUrl && altText) {
         const result = await searchByImageURL(imageUrl);
         const keywords = await getKeywords(altText);
         if (parseFloat(result.score) >= 0.99) {
-          await addAltToImage(result.id, altText, keywords);
+          await addAltToImage(result.id, altText, keywords, lang, postText);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageUrlConcepts(imageUrl);
           const clarifaiId = await uploadImageUrl(imageUrl);
-          await insertImageWithAlt(clarifaiId, altText, concepts, keywords);
+          await insertImageWithAlt(clarifaiId, altText, concepts, keywords, lang, postText);
           res.send({ status: 1, message: "Image added successfully." });
         }
       } else {
@@ -203,7 +205,7 @@ app.post(
         } else {
           const concepts = await getImageBufferConcepts(buffer);
           const clarifaiId = await uploadImageBuffer(buffer);
-          await insertImageWithAlt(clarifaiId, altText, concepts, keywords);
+          await insertImageWithAlt(clarifaiId, altText, concepts, keywords, lang, postText);
           res.send({ status: 1, message: "Image added successfully." });
         }
       } else {
@@ -221,18 +223,20 @@ app.post(
   async function (req: express.Request, res: express.Response) {
     try {
       const imageBytes = req.body.imageBase64;
+      const lang = req.body.lang;
       const altText = decodeURIComponent(req.body.altText?.trim());
+      const postText = decodeURIComponent(req.body.postText?.trim());
 
       if (imageBytes && altText) {
         const result = await searchByImageBase64(imageBytes);
         const keywords = await getKeywords(altText);
         if (parseFloat(result.score) >= 0.99) {
-          await addAltToImage(result.id, altText, keywords);
+          await addAltToImage(result.id, altText, keywords, lang, postText);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageBase64Concepts(imageBytes);
           const clarifaiId = await uploadImageBase64(imageBytes);
-          await insertImageWithAlt(clarifaiId, altText, concepts, keywords);
+          await insertImageWithAlt(clarifaiId, altText, concepts, keywords, lang, postText);
           res.send({ status: 1, message: "Image added successfully." });
         }
       } else {
