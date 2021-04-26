@@ -46,7 +46,7 @@ async function getImageText(clarifaiId: string): Promise<any> {
       ClarifaiId = "${clarifaiId}"`
   );
   
-  return text.length > 0 ? text[0].Text : {};
+  return text.length > 0 ? decodeURIComponent(text[0].Text) : {};
 }
 
 async function insertImage(
@@ -57,7 +57,7 @@ async function insertImage(
   await executeQuery(
     `INSERT INTO Image (ClarifaiId, ClarifaiConcepts, Text, CreationDate) VALUES ("${clarifaiId}", "${concepts.join(
       ","
-    )}", "${text ? JSON.stringify(text) : null}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
+    )}", "${text ? encodeURIComponent(JSON.stringify(text)) : null}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
   );
 }
 
