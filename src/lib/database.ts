@@ -36,7 +36,7 @@ async function getImageConcepts(clarifaiId: string): Promise<Array<string>> {
   return concepts.length > 0 ? concepts[0].ClarifaiConcepts.split(",") : [];
 }
 
-async function getImageText(clarifaiId: string): Promise<Array<string>> {
+async function getImageText(clarifaiId: string): Promise<any> {
   const text = await executeQuery(
     `SELECT
       Text
@@ -46,7 +46,7 @@ async function getImageText(clarifaiId: string): Promise<Array<string>> {
       ClarifaiId = "${clarifaiId}"`
   );
   
-  return text.length > 0 ? text[0].Text.split("\n") : [];
+  return text.length > 0 ? text[0].Text : {};
 }
 
 async function insertImage(
@@ -57,7 +57,7 @@ async function insertImage(
   await executeQuery(
     `INSERT INTO Image (ClarifaiId, ClarifaiConcepts, Text, CreationDate) VALUES ("${clarifaiId}", "${concepts.join(
       ","
-    )}", "${text?.phrases?.join("\n")}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
+    )}", "${text ? JSON.stringify(text) : null}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
   );
 }
 

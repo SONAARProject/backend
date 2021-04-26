@@ -107,7 +107,7 @@ async function search(
         message: "Image exists, alt text found.",
         alts: alts[0].AltText ? JSON.stringify(alts) : undefined,
         concepts: JSON.stringify(alts[0].ClarifaiConcepts),
-        text: alts[0].Text ? JSON.stringify(alts[0].Text) : undefined,
+        text: alts[0].Text ? alts[0].Text : undefined,
       });
     } else {
       const concepts = await getImageConcepts(result["id"]);
@@ -116,7 +116,7 @@ async function search(
         status: 2,
         message: "No alt text found.",
         concepts: JSON.stringify(concepts),
-        text: text.length > 0 ? JSON.stringify(text) : undefined,
+        text: text ? text : undefined,
       });
     }
   } else if (buffer) {
@@ -128,7 +128,7 @@ async function search(
       status: 3,
       message: "Image added with concepts.",
       concepts: JSON.stringify(concepts),
-      text: textResult.words.length > 0 ? JSON.stringify(textResult) : undefined,
+      text: textResult ? textResult : undefined,
     });
   } else if (base64) {
     const concepts = await getImageBase64Concepts(base64);
@@ -139,7 +139,7 @@ async function search(
       status: 3,
       message: "Image added with concepts.",
       concepts: JSON.stringify(concepts.join(', ')),
-      text: textResult.words.length > 0 ? JSON.stringify(textResult) : undefined,
+      text: textResult ? textResult : undefined,
     });
   } else if (url) {
     const concepts = await getImageUrlConcepts(url);
@@ -150,7 +150,7 @@ async function search(
       status: 3,
       message: "Image added with concepts.",
       concepts: JSON.stringify(concepts.join(', ')),
-      text: textResult.words.length > 0 ? JSON.stringify(textResult) : undefined,
+      text: textResult ? textResult : undefined,
     });
   }
 }
