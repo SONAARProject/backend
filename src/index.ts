@@ -169,13 +169,15 @@ app.post(
         //@ts-ignore
         Object.values<number>(JSON.parse(req.body.imageBuffer))
       );
+      const lang = req.body.lang;
       const altText = decodeURIComponent(req.body.altText?.trim());
+      const postText = decodeURIComponent(req.body.postText?.trim());
 
       if (buffer && altText) {
         const result = await searchByImageBuffer(buffer);
         const keywords = await getKeywords(altText);
         if (parseFloat(result.score) >= 0.99) {
-          await addAltToImage(result.id, altText, keywords);
+          await addAltToImage(result.id, altText, keywords, lang, postText);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageBufferConcepts(buffer);

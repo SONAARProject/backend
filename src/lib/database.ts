@@ -64,10 +64,19 @@ async function insertImageWithAlt(
 async function addAltToImage(
   clarifaiId: string,
   alt: string,
-  keywords: Array<string>
+  keywords: Array<string>,
+  deviceLang?: string,
+  postText?: string
 ): Promise<void> {
-  const lang = franc(alt);
-  console.log(lang, iso6393To1[lang]);
+  let lang = franc(alt);
+  
+  if (lang === 'und') {
+    lang = franc(postText ?? '');
+    if (lang === 'und') {
+      lang = deviceLang ?? lang;
+    }
+  }
+
   const altText = await executeQuery(`
     SELECT * 
     FROM

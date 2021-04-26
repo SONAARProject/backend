@@ -1,7 +1,7 @@
 import retext from "retext";
 import pos from "retext-pos";
 import keywords from "retext-keywords";
-import toString from "nlcst-to-string";
+import { toString } from "nlcst-to-string";
 
 function getKeywords(text: string): Promise<Array<string>> {
   return new Promise((resolve, reject) => {
