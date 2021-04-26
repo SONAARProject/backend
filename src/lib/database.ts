@@ -9,6 +9,7 @@ async function getImageAlt(clarifaiId: string, lang: string): Promise<Array<any>
   const alts = await executeQuery(
     `SELECT
       i.ClarifaiConcepts,
+      i.Text,
       at.AltText,
       at.Keywords
     FROM 
@@ -33,6 +34,19 @@ async function getImageConcepts(clarifaiId: string): Promise<Array<string>> {
   );
   
   return concepts.length > 0 ? concepts[0].ClarifaiConcepts.split(",") : [];
+}
+
+async function getImageText(clarifaiId: string): Promise<Array<string>> {
+  const text = await executeQuery(
+    `SELECT
+      Text
+    FROM 
+      Image
+    WHERE 
+      ClarifaiId = "${clarifaiId}"`
+  );
+  
+  return text.length > 0 ? text[0].Text.split("\n") : [];
 }
 
 async function insertImage(
@@ -125,6 +139,7 @@ function executeQuery(query: string): Promise<any> {
 export {
   getImageAlt,
   getImageConcepts,
+  getImageText,
   insertImage,
   insertImageWithAlt,
   addAltToImage,
