@@ -48,11 +48,11 @@ async function getTextFromImageBase64(imageBytes: string): Promise<any> {
             const model = output.model;
             if(model.name === "Visual Text Recognition"){
               for(const region of output.data.regions || []){
-                words.push(region.data.text.raw);
+                words.push(region?.data?.text?.raw);
               }
             }
             if(model.name === "text-aggregator"){
-							phrases.push(output.data.text.raw);
+							phrases.push(output?.data?.text?.raw);
             }
           }
           resolve({"words": words, "phrases": phrases});
