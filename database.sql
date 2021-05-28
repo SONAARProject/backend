@@ -31,3 +31,11 @@ CREATE TABLE `AltText` (
   KEY `ATImageId_fk` (`ImageId`),
   CONSTRAINT `ATImageId_fk` FOREIGN KEY (`ImageId`) REFERENCES `Image` (`ImageId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `Counter`;
+CREATE TABLE `Counter` (
+  `Authoring` INT (11) DEFAULT 0,
+  `Consumption` INT (11) DEFAULT 0,
+  `AuthoringLastUpdated` DATETIME NOT NULL,
+  `ConsumptionLastUpdated` DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

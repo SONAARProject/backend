@@ -1,13 +1,23 @@
-import { ClarifaiStub } from "clarifai-nodejs-grpc";
-import { Metadata } from "@grpc/grpc-js";
+import { grpc } from "clarifai-nodejs-grpc";
+//import { Metadata } from "@grpc/grpc-js";
+import { V2Client } from "clarifai-nodejs-grpc/proto/clarifai/api/service_grpc_pb";
+import { StatusCode } from "clarifai-nodejs-grpc/proto/clarifai/api/status/status_code_pb";
+import service from "clarifai-nodejs-grpc/proto/clarifai/api/service_pb";
+import resources from "clarifai-nodejs-grpc/proto/clarifai/api/resources_pb";
+
 import fetch from "node-fetch";
 import apiKey from "./constants";
 
 // Construct one of the stubs you want to use
-const stub = ClarifaiStub.grpc();
+//const stub = ClarifaiStub.grpc;
+
+const clarifai = new V2Client(
+  "api.clarifai.com",
+  grpc.ChannelCredentials.createSsl()
+);
 
 // This will be used by every Clarifai endpoint call.
-const metadata = new Metadata();
+const metadata = new grpc.Metadata();
 metadata.set("authorization", "Key " + apiKey);
 
 //By Image URL
@@ -21,37 +31,38 @@ async function searchByImageBuffer(imageBuffer: Buffer): Promise<any> {
 }
 
 async function searchByImageBase64(imageBytes: string): Promise<any> {
+  const request = new service.PostSearchesRequest();
+  request.addSearches(
+    new resources.Search().setQuery(
+      new resources.Query().setAndsList([
+        new resources.And().setOutput(
+          new resources.Output().setInput(
+            new resources.Input().setData(
+              new resources.Data().setImage(
+                new resources.Image().setBase64(imageBytes)
+              )
+            )
+          )
+        ),
+      ])
+    )
+  );
   return new Promise((resolve, reject) => {
-    stub.PostSearches(
-      {
-        query: {
-          ands: [
-            {
-              output: {
-                input: {
-                  data: {
-                    image: {
-                      base64: imageBytes,
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        },
-      },
+    clarifai.postSearches(
+      request,
       metadata,
-      (err: any, response: any) => {
+      (err: any, response: service.MultiSearchResponse) => {
         if (err) {
           reject(err);
-        } else if (response.status.code !== 10000) {
+        } else if (response.getStatus()?.getCode() !== StatusCode.SUCCESS) {
           reject(
-            "Post searches failed, status: " + response.status.description
+            "Post searches failed, status: " +
+              response.getStatus()?.getDescription()
           );
         } else {
           resolve({
-            score: response.hits[0].score,
-            id: response.hits[0].input.id,
+            score: response.getHitsList()[0].getScore(),
+            id: response.getHitsList()[0].getInput()?.getId(),
           });
         }
       }
@@ -72,32 +83,32 @@ async function getImageBase64Concepts(
   imageBytes: string
 ): Promise<Array<string>> {
   //return getImageBase64Text(imageBytes);
+  const request = new service.PostModelOutputsRequest();
+  request.setModelId("aaa03c23b3724a16a56b629203edc62c");
+  request.addInputs(
+    new resources.Input().setData(
+      new resources.Data().setImage(new resources.Image().setBase64(imageBytes))
+    )
+  );
   return new Promise((resolve, reject) => {
-    stub.PostModelOutputs(
-      {
-        model_id: "aaa03c23b3724a16a56b629203edc62c", // This is model ID of the clarifai/main General model
-        inputs: [
-          {
-            data: {
-              image: { base64: imageBytes },
-            },
-          },
-        ],
-        model: { output_info: { output_config: { min_value: 0.95 } } },
-      },
+    clarifai.postModelOutputs(
+      request,
       metadata,
-      (err: any, response: any) => {
+      (err: any, response: service.MultiOutputResponse) => {
         if (err) {
           reject(err);
-        } else if (response.status.code !== 10000) {
+        } else if (response.getStatus()?.getCode() !== StatusCode.SUCCESS) {
           reject(
-            "Post model outputs failed, status: " + response.status.description
+            "Post model outputs failed, status: " +
+              response.getStatus()?.getDescription()
           );
         } else {
-          const concepts = response.outputs[0].data.concepts.map(
-            (c: any) => c.name
-          );
-          resolve(concepts);
+          const concepts = response
+            .getOutputsList()[0]
+            .getData()
+            ?.getConceptsList()
+            .map((c: resources.Concept) => c.getName());
+          resolve(concepts || new Array<string>());
         }
       }
     );

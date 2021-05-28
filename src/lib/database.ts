@@ -1,11 +1,14 @@
 import { readFileSync } from "fs";
 import { createConnection } from "mysql";
 import franc from "franc-min";
-import iso6393To1 from './iso-639-3-to-1';
+import iso6393To1 from "./iso-639-3-to-1";
 
 const config = JSON.parse(readFileSync("../clarifai-db.json", "utf-8").trim());
 
-async function getImageAlt(clarifaiId: string, lang: string): Promise<Array<any>> {
+async function getImageAlt(
+  clarifaiId: string,
+  lang: string
+): Promise<Array<any>> {
   const alts = await executeQuery(
     `SELECT
       i.ClarifaiConcepts,
@@ -32,7 +35,7 @@ async function getImageConcepts(clarifaiId: string): Promise<Array<string>> {
     WHERE 
       ClarifaiId = "${clarifaiId}"`
   );
-  
+
   return concepts.length > 0 ? concepts[0].ClarifaiConcepts.split(",") : [];
 }
 
@@ -45,7 +48,7 @@ async function getImageText(clarifaiId: string): Promise<any> {
     WHERE 
       ClarifaiId = "${clarifaiId}"`
   );
-  
+
   return text.length > 0 ? decodeURIComponent(text[0].Text) : {};
 }
 
@@ -57,7 +60,9 @@ async function insertImage(
   await executeQuery(
     `INSERT INTO Image (ClarifaiId, ClarifaiConcepts, Text, CreationDate) VALUES ("${clarifaiId}", "${concepts.join(
       ","
-    )}", "${text ? encodeURIComponent(JSON.stringify(text)) : null}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
+    )}", "${
+      text ? encodeURIComponent(JSON.stringify(text)) : null
+    }", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
   );
 }
 
@@ -86,10 +91,10 @@ async function addAltToImage(
   postText?: string
 ): Promise<void> {
   let lang = franc(alt);
-  
-  if (lang === 'und') {
-    lang = franc(postText ?? '');
-    if (lang === 'und') {
+
+  if (lang === "und") {
+    lang = franc(postText ?? "");
+    if (lang === "und") {
       lang = deviceLang ?? lang;
     }
   }
@@ -108,18 +113,32 @@ async function addAltToImage(
 
   if (altText.length > 0) {
     await executeQuery(`
-      UPDATE AltText SET Counter = "${parseInt(altText[0].Counter) + 1}" WHERE AltTextId = "${altText[0].AltTextId}"
+      UPDATE AltText SET Counter = "${
+        parseInt(altText[0].Counter) + 1
+      }" WHERE AltTextId = "${altText[0].AltTextId}"
     `);
   } else {
     await executeQuery(
       `
       INSERT INTO AltText (ImageId, AltText, Keywords, Language, CreationDate) 
-      SELECT ImageId, "${alt.trim()}", "${keywords.join(
-        ","
-      )}", "${iso6393To1[lang]}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}" 
+      SELECT ImageId, "${alt.trim()}", "${keywords.join(",")}", "${
+        iso6393To1[lang]
+      }", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}" 
       FROM Image WHERE ClarifaiId = "${clarifaiId}"`
     );
   }
+}
+
+async function updateConsumption(): Promise<void> {
+  await executeQuery(
+    `UPDATE Counter SET Consumption = Consumption + 1, ConsumptionLastUpdated = NOW()`
+  );
+}
+
+async function updateAuthoring(): Promise<void> {
+  await executeQuery(
+    `UPDATE Counter SET Authoring = Authoring + 1, AuthoringLastUpdated = NOW()`
+  );
 }
 
 function executeQuery(query: string): Promise<any> {
@@ -143,4 +162,6 @@ export {
   insertImage,
   insertImageWithAlt,
   addAltToImage,
+  updateConsumption,
+  updateAuthoring,
 };

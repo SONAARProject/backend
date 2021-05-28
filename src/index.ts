@@ -27,6 +27,8 @@ import {
   insertImage,
   insertImageWithAlt,
   addAltToImage,
+  updateConsumption,
+  updateAuthoring,
 } from "./lib/database";
 import getKeywords from "./lib/getKeywords";
 
@@ -49,6 +51,7 @@ app.get(
   "/clarifai/search/:lang/:imageUrl",
   async function (req: express.Request, res: express.Response) {
     try {
+      await updateConsumption();
 
       let url = decodeURIComponent(req.params.imageUrl);
 
@@ -67,6 +70,14 @@ app.post(
   "/clarifai/search/",
   async function (req: express.Request, res: express.Response) {
     try {
+      const type = req.body.type;
+
+      if (type && type.trim().toLowerCase() === "authoring") {
+        await updateAuthoring();
+      } else if (type && type.trim().toLowerCase() === "consumption") {
+        await updateConsumption();
+      }
+
       let result = null;
       const lang = req.body.lang;
       let buffer: Buffer | undefined = undefined;
@@ -76,7 +87,6 @@ app.post(
           Object.values<number>(JSON.parse(req.body.imageBuffer))
         );
         result = await searchByImageBuffer(buffer);
-        
       } else {
         result = await searchByImageBase64(req.body.imageBase64);
       }
@@ -95,9 +105,8 @@ async function search(
   res: express.Response,
   buffer?: Buffer,
   base64?: string,
-  url?: string,
+  url?: string
 ): Promise<void> {
-
   if (result && parseFloat(result["score"]) > SCORE_THRESHOLD) {
     const alts = await getImageAlt(result["id"], lang);
 
@@ -138,7 +147,7 @@ async function search(
     res.send({
       status: 3,
       message: "Image added with concepts.",
-      concepts: JSON.stringify(concepts.join(', ')),
+      concepts: JSON.stringify(concepts.join(", ")),
       text: textResult ? JSON.stringify(textResult) : undefined,
     });
   } else if (url) {
@@ -149,7 +158,7 @@ async function search(
     res.send({
       status: 3,
       message: "Image added with concepts.",
-      concepts: JSON.stringify(concepts.join(', ')),
+      concepts: JSON.stringify(concepts.join(", ")),
       text: textResult ? JSON.stringify(textResult) : undefined,
     });
   }
@@ -173,7 +182,14 @@ app.post(
         } else {
           const concepts = await getImageUrlConcepts(imageUrl);
           const clarifaiId = await uploadImageUrl(imageUrl);
-          await insertImageWithAlt(clarifaiId, altText, concepts, keywords, lang, postText);
+          await insertImageWithAlt(
+            clarifaiId,
+            altText,
+            concepts,
+            keywords,
+            lang,
+            postText
+          );
           res.send({ status: 1, message: "Image added successfully." });
         }
       } else {
@@ -207,7 +223,14 @@ app.post(
         } else {
           const concepts = await getImageBufferConcepts(buffer);
           const clarifaiId = await uploadImageBuffer(buffer);
-          await insertImageWithAlt(clarifaiId, altText, concepts, keywords, lang, postText);
+          await insertImageWithAlt(
+            clarifaiId,
+            altText,
+            concepts,
+            keywords,
+            lang,
+            postText
+          );
           res.send({ status: 1, message: "Image added successfully." });
         }
       } else {
@@ -238,7 +261,14 @@ app.post(
         } else {
           const concepts = await getImageBase64Concepts(imageBytes);
           const clarifaiId = await uploadImageBase64(imageBytes);
-          await insertImageWithAlt(clarifaiId, altText, concepts, keywords, lang, postText);
+          await insertImageWithAlt(
+            clarifaiId,
+            altText,
+            concepts,
+            keywords,
+            lang,
+            postText
+          );
           res.send({ status: 1, message: "Image added successfully." });
         }
       } else {

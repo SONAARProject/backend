@@ -1,13 +1,23 @@
-import { ClarifaiStub } from "clarifai-nodejs-grpc";
-import { Metadata } from "@grpc/grpc-js";
+import { grpc } from "clarifai-nodejs-grpc";
+//import { Metadata } from "@grpc/grpc-js";
+import { V2Client } from "clarifai-nodejs-grpc/proto/clarifai/api/service_grpc_pb";
+import { StatusCode } from "clarifai-nodejs-grpc/proto/clarifai/api/status/status_code_pb";
+import service from "clarifai-nodejs-grpc/proto/clarifai/api/service_pb";
+import resources from "clarifai-nodejs-grpc/proto/clarifai/api/resources_pb";
+
 import fetch from "node-fetch";
 import apiKey from "./constants";
 
 // Construct one of the stubs you want to use
-const stub = ClarifaiStub.grpc();
+//const stub = ClarifaiStub.grpc();
+
+const clarifai = new V2Client(
+  "api.clarifai.com",
+  grpc.ChannelCredentials.createSsl()
+);
 
 // This will be used by every Clarifai endpoint call.
-const metadata = new Metadata();
+const metadata = new grpc.Metadata();
 metadata.set("authorization", "Key " + apiKey);
 
 //By Image URL
@@ -21,48 +31,53 @@ async function getTextFromImageBuffer(imageBuffer: Buffer): Promise<any> {
 }
 
 async function getTextFromImageBase64(imageBytes: string): Promise<any> {
+  const request = new service.PostWorkflowResultsRequest();
+  request.setWorkflowId("visual-text-recognition-id");
+  request.addInputs(
+    new resources.Input().setData(
+      new resources.Data().setImage(new resources.Image().setBase64(imageBytes))
+    )
+  );
   return new Promise((resolve, reject) => {
-    stub.PostWorkflowResults(
-      {
-          workflow_id: "visual-text-recognition-id",
-          inputs: [
-              {data: {image: {base64: imageBytes}}}
-          ]
-      },
+    clarifai.postWorkflowResults(
+      request,
       metadata,
-      (err, response) => {
-          if (err) {
-            reject(err);
-          }
+      (err: any, response: service.PostWorkflowResultsResponse) => {
+        if (err) {
+          reject(err);
+        }
 
-          if (response.status.code !== 10000) {
-            reject(
-              "Post workflow results failed, status: " + response.status.description
-            );
-          }
+        if (response.getStatus()?.getCode() !== StatusCode.SUCCESS) {
+          reject(
+            "Post workflow results failed, status: " +
+              response.getStatus()?.getDescription()
+          );
+        }
 
-          const words = new Array<string>();
-          const phrases = new Array<string>();
+        const words = new Array<string>();
+        const phrases = new Array<string>();
 
-          for (const output of response.results[0].outputs) {
-            const model = output.model;
-            if(model.name === "Visual Text Recognition"){
-              for(const region of output.data.regions || []){
-                words.push(region?.data?.text?.raw);
+        for (const output of response.getResultsList()[0].getOutputsList()) {
+          const model = output.getModel();
+          if (model?.getName() === "Visual Text Recognition") {
+            for (const region of output.getData()?.getRegionsList() || []) {
+              const raw = region.getData()?.getText()?.getRaw();
+              if (raw !== undefined) {
+                words.push(raw);
               }
             }
-            if(model.name === "text-aggregator"){
-							phrases.push(output?.data?.text?.raw);
+          }
+          if (model?.getName() === "text-aggregator") {
+            const raw = output?.getData()?.getText()?.getRaw();
+            if (raw !== undefined) {
+              phrases.push(raw);
             }
           }
-          resolve({"words": words, "phrases": phrases});
         }
-      );
+        resolve({ words: words, phrases: phrases });
+      }
+    );
   });
 }
 
-export {
-  getTextFromImageURL,
-  getTextFromImageBuffer,
-  getTextFromImageBase64,
-};
+export { getTextFromImageURL, getTextFromImageBuffer, getTextFromImageBase64 };
