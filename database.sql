@@ -39,3 +39,16 @@ CREATE TABLE `Counter` (
   `AuthoringLastUpdated` DATETIME NOT NULL,
   `ConsumptionLastUpdated` DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `Log`;
+CREATE TABLE `Log` (
+  `LogId` INT (11) NOT NULL AUTO_INCREMENT,
+  `UserId` VARCHAR (255) NOT NULL,
+  `Platform` VARCHAR (255) NOT NULL,
+  `SocialMedia`VARCHAR (255) NOT NULL,
+  `RequestType` VARCHAR (255) NOT NULL,
+  `AltTextContribution` TINYINT (1) NOT NULL DEFAULT 0,
+  `CreationDate` DATETIME NOT NULL,
+  PRIMARY KEY (`LogId`),
+  UNIQUE KEY `LogId_UNIQUE` (`LogId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
