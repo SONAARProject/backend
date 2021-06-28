@@ -29,6 +29,7 @@ import {
   addAltToImage,
   updateConsumption,
   updateAuthoring,
+  updateLog
 } from "./lib/database";
 import getKeywords from "./lib/getKeywords";
 
@@ -71,6 +72,9 @@ app.post(
   async function (req: express.Request, res: express.Response) {
     try {
       const type = req.body.type;
+      const socialMedia = req.body.socialMedia || null;
+      const userId = req.body.userId;
+      const platform = req.body.platform;
 
       if (type && type.trim().toLowerCase() === "authoring") {
         await updateAuthoring();
@@ -78,20 +82,26 @@ app.post(
         await updateConsumption();
       }
 
+      updateLog(userId, platform, type, socialMedia, 0);
+
       let result = null;
       const lang = req.body.lang;
       let buffer: Buffer | undefined = undefined;
+      let url: string | undefined = undefined;
       if (req.body.imageBuffer) {
         buffer = Buffer.from(
           //@ts-ignore
           Object.values<number>(JSON.parse(req.body.imageBuffer))
         );
         result = await searchByImageBuffer(buffer);
-      } else {
+      } else if (req.body.imageBase64) {
         result = await searchByImageBase64(req.body.imageBase64);
+      } else {
+        url = decodeURIComponent(req.params.imageUrl);
+        result = await searchByImageURL(url);
       }
 
-      await search(result, lang, res, buffer, req.body.imageBase64);
+      await search(result, lang, res, buffer, req.body.imageBase64, url);
     } catch (err) {
       console.error(err);
       res.send({ status: 4, message: "Unexpected error." });
@@ -173,16 +183,22 @@ app.post(
       const altText = decodeURIComponent(req.body.altText?.trim());
       const postText = decodeURIComponent(req.body.postText?.trim());
 
+      const type = req.body.type;
+      const socialMedia = req.body.socialMedia || null;
+      const userId = req.body.userId;
+      const platform = req.body.platform;
+
       if (imageUrl && altText) {
         const result = await searchByImageURL(imageUrl);
         const keywords = await getKeywords(altText);
+        let contribution = 0;
         if (parseFloat(result.score) >= 0.99) {
-          await addAltToImage(result.id, altText, keywords, lang, postText);
+          contribution = await addAltToImage(result.id, altText, keywords, lang, postText);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageUrlConcepts(imageUrl);
           const clarifaiId = await uploadImageUrl(imageUrl);
-          await insertImageWithAlt(
+          contribution = await insertImageWithAlt(
             clarifaiId,
             altText,
             concepts,
@@ -192,6 +208,7 @@ app.post(
           );
           res.send({ status: 1, message: "Image added successfully." });
         }
+        updateLog(userId, platform, type, socialMedia, contribution);
       } else {
         res.send({ status: 2, message: "Invalid image url or alt text." });
       }
@@ -214,16 +231,22 @@ app.post(
       const altText = decodeURIComponent(req.body.altText?.trim());
       const postText = decodeURIComponent(req.body.postText?.trim());
 
+      const type = req.body.type;
+      const socialMedia = req.body.socialMedia || null;
+      const userId = req.body.userId;
+      const platform = req.body.platform;
+
       if (buffer && altText) {
         const result = await searchByImageBuffer(buffer);
         const keywords = await getKeywords(altText);
+        let contribution = 0;
         if (parseFloat(result.score) >= 0.99) {
-          await addAltToImage(result.id, altText, keywords, lang, postText);
+          contribution = await addAltToImage(result.id, altText, keywords, lang, postText);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageBufferConcepts(buffer);
           const clarifaiId = await uploadImageBuffer(buffer);
-          await insertImageWithAlt(
+          contribution = await insertImageWithAlt(
             clarifaiId,
             altText,
             concepts,
@@ -231,8 +254,10 @@ app.post(
             lang,
             postText
           );
+          updateLog(userId, platform, type, socialMedia, 1);
           res.send({ status: 1, message: "Image added successfully." });
         }
+        updateLog(userId, platform, type, socialMedia, contribution);
       } else {
         res.send({ status: 2, message: "Invalid image url or alt text." });
       }
@@ -252,16 +277,22 @@ app.post(
       const altText = decodeURIComponent(req.body.altText?.trim());
       const postText = decodeURIComponent(req.body.postText?.trim());
 
+      const type = req.body.type;
+      const socialMedia = req.body.socialMedia || null;
+      const userId = req.body.userId;
+      const platform = req.body.platform;
+
       if (imageBytes && altText) {
         const result = await searchByImageBase64(imageBytes);
         const keywords = await getKeywords(altText);
+        let contribution = 0;
         if (parseFloat(result.score) >= 0.99) {
-          await addAltToImage(result.id, altText, keywords, lang, postText);
+          contribution = await addAltToImage(result.id, altText, keywords, lang, postText);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageBase64Concepts(imageBytes);
           const clarifaiId = await uploadImageBase64(imageBytes);
-          await insertImageWithAlt(
+          contribution = await insertImageWithAlt(
             clarifaiId,
             altText,
             concepts,
@@ -269,8 +300,10 @@ app.post(
             lang,
             postText
           );
+          updateLog(userId, platform, type, socialMedia, 1);
           res.send({ status: 1, message: "Image added successfully." });
         }
+        updateLog(userId, platform, type, socialMedia, contribution);
       } else {
         res.send({ status: 2, message: "Invalid image url or alt text." });
       }

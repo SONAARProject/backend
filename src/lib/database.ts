@@ -73,14 +73,14 @@ async function insertImageWithAlt(
   keywords: Array<string>,
   deviceLang?: string,
   postText?: string
-): Promise<void> {
+): Promise<number> {
   await executeQuery(
     `INSERT INTO Image (ClarifaiId, ClarifaiConcepts, CreationDate) VALUES ("${clarifaiId}", "${concepts.join(
       ","
     )}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
   );
 
-  await addAltToImage(clarifaiId, alt, keywords, deviceLang, postText);
+  return await addAltToImage(clarifaiId, alt, keywords, deviceLang, postText);
 }
 
 async function addAltToImage(
@@ -89,7 +89,7 @@ async function addAltToImage(
   keywords: Array<string>,
   deviceLang?: string,
   postText?: string
-): Promise<void> {
+): Promise<number> {
   let lang = franc(alt);
 
   if (lang === "und") {
@@ -117,6 +117,7 @@ async function addAltToImage(
         parseInt(altText[0].Counter) + 1
       }" WHERE AltTextId = "${altText[0].AltTextId}"
     `);
+    return 0;
   } else {
     await executeQuery(
       `
@@ -126,6 +127,7 @@ async function addAltToImage(
       }", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}" 
       FROM Image WHERE ClarifaiId = "${clarifaiId}"`
     );
+    return 1;
   }
 }
 
@@ -139,6 +141,12 @@ async function updateAuthoring(): Promise<void> {
   await executeQuery(
     `UPDATE Counter SET Authoring = Authoring + 1, AuthoringLastUpdated = NOW()`
   );
+}
+
+async function updateLog(userId: string, platform: string, type: string, socialMedia: string | null, altText: number): Promise<void> {
+  await executeQuery(`
+    INSERT INTO Log (UserId, Platform, SocialMedia, RequestType, AltTextContribution, CreationDate) VALUES ("${userId}", "${platform}", "${socialMedia}", "${type}", "${altText}", NOW())
+  `);
 }
 
 function executeQuery(query: string): Promise<any> {
@@ -164,4 +172,5 @@ export {
   addAltToImage,
   updateConsumption,
   updateAuthoring,
+  updateLog
 };
