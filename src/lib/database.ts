@@ -143,6 +143,12 @@ async function updateAuthoring(): Promise<void> {
   );
 }
 
+async function updateSuggestion(): Promise<void> {
+  await executeQuery(
+    `UPDATE Counter SET Suggestion = Suggestion + 1, SuggestionLastUpdated = NOW()`
+  );
+}
+
 async function updateLog(userId: string, platform: string, type: string, socialMedia: string | null, altText: number): Promise<void> {
   await executeQuery(`
     INSERT INTO Log (UserId, Platform, SocialMedia, RequestType, AltTextContribution, CreationDate) VALUES ("${userId}", "${platform}", "${socialMedia}", "${type}", "${altText}", NOW())
@@ -172,5 +178,6 @@ export {
   addAltToImage,
   updateConsumption,
   updateAuthoring,
+  updateSuggestion,
   updateLog
 };

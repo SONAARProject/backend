@@ -29,6 +29,7 @@ import {
   addAltToImage,
   updateConsumption,
   updateAuthoring,
+  updateSuggestion,
   updateLog
 } from "./lib/database";
 import getKeywords from "./lib/getKeywords";
@@ -80,6 +81,8 @@ app.post(
         await updateAuthoring();
       } else if (type && type.trim().toLowerCase() === "consumption") {
         await updateConsumption();
+      } else if (type && type.trim().toLowerCase() === "suggestion") {
+        await updateSuggestion();
       }
 
       updateLog(userId, platform, type, socialMedia, 0);
@@ -188,6 +191,14 @@ app.post(
       const userId = req.body.userId;
       const platform = req.body.platform;
 
+      if (type && type.trim().toLowerCase() === "authoring") {
+        await updateAuthoring();
+      } else if (type && type.trim().toLowerCase() === "consumption") {
+        await updateConsumption();
+      } else if (type && type.trim().toLowerCase() === "suggestion") {
+        await updateSuggestion();
+      }
+
       if (imageUrl && altText) {
         const result = await searchByImageURL(imageUrl);
         const keywords = await getKeywords(altText);
@@ -236,6 +247,14 @@ app.post(
       const userId = req.body.userId;
       const platform = req.body.platform;
 
+      if (type && type.trim().toLowerCase() === "authoring") {
+        await updateAuthoring();
+      } else if (type && type.trim().toLowerCase() === "consumption") {
+        await updateConsumption();
+      } else if (type && type.trim().toLowerCase() === "suggestion") {
+        await updateSuggestion();
+      }
+
       if (buffer && altText) {
         const result = await searchByImageBuffer(buffer);
         const keywords = await getKeywords(altText);
@@ -281,6 +300,14 @@ app.post(
       const socialMedia = req.body.socialMedia || null;
       const userId = req.body.userId;
       const platform = req.body.platform;
+
+      if (type && type.trim().toLowerCase() === "authoring") {
+        await updateAuthoring();
+      } else if (type && type.trim().toLowerCase() === "consumption") {
+        await updateConsumption();
+      } else if (type && type.trim().toLowerCase() === "suggestion") {
+        await updateSuggestion();
+      }
 
       if (imageBytes && altText) {
         const result = await searchByImageBase64(imageBytes);

@@ -35,8 +35,10 @@ CREATE TABLE `AltText` (
 
 DROP TABLE IF EXISTS `Counter`;
 CREATE TABLE `Counter` (
+  `Suggestion` INT (11) DEFAULT 0,
   `Authoring` INT (11) DEFAULT 0,
   `Consumption` INT (11) DEFAULT 0,
+  `SuggestionLastUpdated` DATETIME NOT NULL,
   `AuthoringLastUpdated` DATETIME NOT NULL,
   `ConsumptionLastUpdated` DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
