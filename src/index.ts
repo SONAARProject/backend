@@ -188,7 +188,7 @@ app.post(
 
       const type = req.body.type;
       const socialMedia = req.body.socialMedia || null;
-      const userId = req.body.userId;
+      const userId = req.body.userId || null;
       const platform = req.body.platform;
 
       if (type && type.trim().toLowerCase() === "authoring") {
@@ -204,7 +204,7 @@ app.post(
         const keywords = await getKeywords(altText);
         let contribution = 0;
         if (parseFloat(result.score) >= 0.99) {
-          contribution = await addAltToImage(result.id, altText, keywords, lang, postText);
+          contribution = await addAltToImage(result.id, altText, keywords, lang, postText, userId);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageUrlConcepts(imageUrl);
@@ -215,7 +215,8 @@ app.post(
             concepts,
             keywords,
             lang,
-            postText
+            postText,
+            userId
           );
           res.send({ status: 1, message: "Image added successfully." });
         }
@@ -244,7 +245,7 @@ app.post(
 
       const type = req.body.type;
       const socialMedia = req.body.socialMedia || null;
-      const userId = req.body.userId;
+      const userId = req.body.userId || null;
       const platform = req.body.platform;
 
       if (type && type.trim().toLowerCase() === "authoring") {
@@ -260,7 +261,7 @@ app.post(
         const keywords = await getKeywords(altText);
         let contribution = 0;
         if (parseFloat(result.score) >= 0.99) {
-          contribution = await addAltToImage(result.id, altText, keywords, lang, postText);
+          contribution = await addAltToImage(result.id, altText, keywords, lang, postText, userId);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageBufferConcepts(buffer);
@@ -271,7 +272,8 @@ app.post(
             concepts,
             keywords,
             lang,
-            postText
+            postText,
+            userId
           );
           updateLog(userId, platform, type, socialMedia, 1);
           res.send({ status: 1, message: "Image added successfully." });
@@ -298,7 +300,7 @@ app.post(
 
       const type = req.body.type;
       const socialMedia = req.body.socialMedia || null;
-      const userId = req.body.userId;
+      const userId = req.body.userId || null;
       const platform = req.body.platform;
 
       if (type && type.trim().toLowerCase() === "authoring") {
@@ -314,7 +316,7 @@ app.post(
         const keywords = await getKeywords(altText);
         let contribution = 0;
         if (parseFloat(result.score) >= 0.99) {
-          contribution = await addAltToImage(result.id, altText, keywords, lang, postText);
+          contribution = await addAltToImage(result.id, altText, keywords, lang, postText, userId);
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageBase64Concepts(imageBytes);
@@ -325,7 +327,8 @@ app.post(
             concepts,
             keywords,
             lang,
-            postText
+            postText,
+            userId
           );
           updateLog(userId, platform, type, socialMedia, 1);
           res.send({ status: 1, message: "Image added successfully." });

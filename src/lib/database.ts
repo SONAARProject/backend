@@ -72,7 +72,8 @@ async function insertImageWithAlt(
   concepts: Array<string>,
   keywords: Array<string>,
   deviceLang?: string,
-  postText?: string
+  postText?: string,
+  userId?: string | null
 ): Promise<number> {
   await executeQuery(
     `INSERT INTO Image (ClarifaiId, ClarifaiConcepts, CreationDate) VALUES ("${clarifaiId}", "${concepts.join(
@@ -80,7 +81,7 @@ async function insertImageWithAlt(
     )}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}")`
   );
 
-  return await addAltToImage(clarifaiId, alt, keywords, deviceLang, postText);
+  return await addAltToImage(clarifaiId, alt, keywords, deviceLang, postText, userId);
 }
 
 async function addAltToImage(
@@ -88,7 +89,8 @@ async function addAltToImage(
   alt: string,
   keywords: Array<string>,
   deviceLang?: string,
-  postText?: string
+  postText?: string,
+  userId?: string | null
 ): Promise<number> {
   let lang = franc(alt);
 
@@ -121,10 +123,10 @@ async function addAltToImage(
   } else {
     await executeQuery(
       `
-      INSERT INTO AltText (ImageId, AltText, Keywords, Language, CreationDate) 
+      INSERT INTO AltText (ImageId, AltText, Keywords, Language, UserId, CreationDate) 
       SELECT ImageId, "${alt.trim()}", "${keywords.join(",")}", "${
         iso6393To1[lang]
-      }", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}" 
+      }", "${userId}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}" 
       FROM Image WHERE ClarifaiId = "${clarifaiId}"`
     );
     return 1;
