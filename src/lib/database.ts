@@ -122,17 +122,13 @@ async function addAltToImage(
         );
         return 0;
     } else {
+        const quality = await calcAltTextQualityForImage(clarifaiId, alt);
         await executeQuery(`
-          INSERT INTO AltText (ImageId, AltText, Keywords, Language, UserId, CreationDate) 
+          INSERT INTO AltText (ImageId, AltText, Keywords, Language, UserId, CreationDate, Quality) 
           SELECT ImageId, "${alt.trim()}", "${keywords.join(",")}", "${iso6393To1[lang]
-            }", "${userId}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}" 
+            }", "${userId}", "${new Date().toISOString().replace(/T/, " ").replace(/\..+/, "")}", "${quality}" 
           FROM Image WHERE ClarifaiId = "${clarifaiId}"`
-        );
-        const newAltTextId = await executeQuery(`SELECT MAX(AltTextId) FROM AltText`);
-        const quality = await calcAltTextQualityForImage(clarifaiId, newAltTextId);
-        await executeQuery(`
-            UPDATE AltText SET Quality = '${quality}' WHERE AltTextId = '${newAltTextId}}';
-        `);
+        );        
         return 1;
     }
 }

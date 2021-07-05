@@ -4,8 +4,7 @@ import { readFileSync } from "fs";
 
 const token = readFileSync("../dandelion.key", "utf-8").trim();
 
-async function calcAltTextQualityForImage(clarifaiId: string, altTextId: string) {
-    const altText = await getAltText(altTextId);
+async function calcAltTextQualityForImage(clarifaiId: string, altText: string) {
     const imageConcepts = await getImageConcepts(clarifaiId);
 
     let totalConcepts = 0;
