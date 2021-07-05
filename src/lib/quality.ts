@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { getAltText, getImageConcepts } from "./database";
+import { getImageConcepts } from "./database";
 import { readFileSync } from "fs";
 
 const token = readFileSync("../dandelion.key", "utf-8").trim();
