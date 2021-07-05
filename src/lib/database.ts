@@ -23,8 +23,7 @@ async function getImageAlt(
       LEFT OUTER JOIN AltText as at ON at.ImageId = i.ImageId AND at.Language = "${lang}"
     WHERE 
       i.ClarifaiId = "${clarifaiId}"
-    ORDER BY at.Counter DESC
-    LIMIT 5`
+    ORDER BY at.Counter DESC`
     );
     return sortAlts(alts);
 }
@@ -147,7 +146,7 @@ function sortAlts(alts: Array<any>): Array<any> {
         const wA = ((elemA.Counter / totalCounts) + elemA.Quality) / 2;
         const wB = ((elemB.Counter / totalCounts) + elemB.Quality) / 2;
         return wB - wA;
-    });
+    }).slice(0,5);
 }
 
 async function updateConsumption(): Promise<void> {
