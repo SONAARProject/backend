@@ -103,11 +103,16 @@ async function getImageBase64Concepts(
               response.getStatus()?.getDescription()
           );
         } else {
-          const concepts = response
+          const concepts = new Array<string>();
+          response
             .getOutputsList()[0]
             .getData()
             ?.getConceptsList()
-            .map((c: resources.Concept) => c.getName());
+            .map((c: resources.Concept) => {
+              if (c.getValue() > 0.95 && concepts.length < 10) {
+                concepts.push(c.getName());
+              }
+            });
           resolve(concepts || new Array<string>());
         }
       }
