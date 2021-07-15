@@ -27,6 +27,7 @@ CREATE TABLE `AltText` (
   `Counter` INT (11) DEFAULT 1,
   `UserId` VARCHAR (255),
   `CreationDate` DATETIME NOT NULL,
+  `Quality` DECIMAL(6,5) NOT NULL DEFAULT '0.00000',
   PRIMARY KEY (`AltTextId`),
   UNIQUE KEY `AltTextId_UNIQUE` (`AltTextId`),
   KEY `ATImageId_fk` (`ImageId`),
