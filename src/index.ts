@@ -30,7 +30,7 @@ import {
   updateConsumption,
   updateAuthoring,
   updateSuggestion,
-  updateLog
+  updateLog,
 } from "./lib/database";
 import getKeywords from "./lib/getKeywords";
 
@@ -100,7 +100,7 @@ app.post(
       } else if (req.body.imageBase64) {
         result = await searchByImageBase64(req.body.imageBase64);
       } else {
-        url = decodeURIComponent(req.params.imageUrl);
+        url = decodeURIComponent(req.body.imageUrl);
         result = await searchByImageURL(url);
       }
 
@@ -204,7 +204,14 @@ app.post(
         const keywords = await getKeywords(altText);
         let contribution = 0;
         if (parseFloat(result.score) >= 0.99) {
-          contribution = await addAltToImage(result.id, altText, keywords, lang, postText, userId);
+          contribution = await addAltToImage(
+            result.id,
+            altText,
+            keywords,
+            lang,
+            postText,
+            userId
+          );
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageUrlConcepts(imageUrl);
@@ -261,7 +268,14 @@ app.post(
         const keywords = await getKeywords(altText);
         let contribution = 0;
         if (parseFloat(result.score) >= 0.99) {
-          contribution = await addAltToImage(result.id, altText, keywords, lang, postText, userId);
+          contribution = await addAltToImage(
+            result.id,
+            altText,
+            keywords,
+            lang,
+            postText,
+            userId
+          );
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageBufferConcepts(buffer);
@@ -316,7 +330,14 @@ app.post(
         const keywords = await getKeywords(altText);
         let contribution = 0;
         if (parseFloat(result.score) >= 0.99) {
-          contribution = await addAltToImage(result.id, altText, keywords, lang, postText, userId);
+          contribution = await addAltToImage(
+            result.id,
+            altText,
+            keywords,
+            lang,
+            postText,
+            userId
+          );
           res.send({ status: 1, message: "Image added successfully." });
         } else {
           const concepts = await getImageBase64Concepts(imageBytes);
